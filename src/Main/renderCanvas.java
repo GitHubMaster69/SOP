@@ -1,11 +1,8 @@
 package Main;
 
 
-import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
-import java.io.File;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Objects;
 import java.awt.image.BufferedImage;
@@ -16,25 +13,24 @@ public class renderCanvas extends JPanel {
     Color green = new Color(0, 255, 0);
     Color blue = new Color(0, 0, 255);
 
-
     int width = 600;
     int height = 600;
     int x;
     int y;
+
     Color color = new Color(255,255,255);
 
-    int viewport_size = 1;
-    int projection_plane_z = 1;
-    double[] camera_position = {0, 0, 0};
-
+    int eyeFOV = 1;
+    int z_pos = 1;
+    double[] cameraPos = {0, 0, 0};
 
     private BufferedImage canvas;
 
-        public renderCanvas(int width, int height) {
-            canvas = new BufferedImage(width,height, BufferedImage.TYPE_INT_ARGB);
-            render r = new render();
-            render();
-        }
+
+    public renderCanvas(int width, int height) {
+         canvas = new BufferedImage(width,height, BufferedImage.TYPE_INT_ARGB);
+         render();
+    }
 
     public void paintComponent (Graphics g) {
         System.out.println("paint");
@@ -43,18 +39,25 @@ public class renderCanvas extends JPanel {
         g2.drawImage(canvas,null,null);
     }
 
+    // ======================================================================
+    //  render(): Kører gennem alle pixels på skærmen og finder farven ved brug af funktionerne
+    // ======================================================================
+
     public void render() {
         for (int i = -width/2; i < width/2; i++) {
             for (int j = -height/2; j < height/2; j++) {
                 double[] d = {i, j};
-                double[] direction = CanvasToViewport(d);
-                color = traceRay(camera_position, direction, 1, 99999);
+                double[] direction = CanvasToPos(d);
+                color = traceRay(cameraPos, direction, 1, 99999);
                 getPixel(i,j,color);
             }
         }
         repaint();
     }
 
+    // ======================================================================
+    //  getPixel(): tager værdierne fra render(x,y,farve) og printer det til canvas
+    // ======================================================================
     public void getPixel (int x, int y, Color color){
         this.x = width/2 + x;
         this.y = height/2 - y;
@@ -69,10 +72,8 @@ public class renderCanvas extends JPanel {
     }
 
     // ======================================================================
-    //  Vektor regning med krydsprodukt og subration
+    //  Vektor regning med prikprodukt og subration
     // ======================================================================
-
-
 
     private double DotProduct(double[] v1, double[] v2) {
         double[] Dot_P = new double[3];
@@ -94,38 +95,36 @@ public class renderCanvas extends JPanel {
     //  koordinatsystem
     // ======================================================================
 
-
-
-    public double[] CanvasToViewport(double[] p2b)  {
+    public double[] CanvasToPos(double[] canvasPos)  {
        // System.out.println(Arrays.toString(p2b));
-        double[] temp3 = new double[3];
-                temp3[0] = p2b[0] * viewport_size / width;
-                temp3[1] = p2b[1] * viewport_size / height;
-                temp3[2] = projection_plane_z;
+        double[] temp = new double[3];
+                temp[0] = canvasPos[0] * eyeFOV / width;
+                temp[1] = canvasPos[1] * eyeFOV / height;
+                temp[2] = z_pos;
              //   System.out.println(Arrays.toString(temp3));
-        return temp3;
+        return temp;
     }
 
+// ======================================================================
+    //  IntersectRaySphere udregner kvadratformlen og traceRay udregner om strålen rammer en cirkel
+    // ======================================================================
 
-    public double[] IntersectRaySphere(double[] origin, double[] direction, sphere sp) {
-        double[] oc = Sub(origin,sp.center);
-        double k1 = DotProduct(direction,  direction);
-        double k2 = 2*DotProduct(oc, direction);
-        double k3 = DotProduct(oc, oc) - sp.radius * sp.radius;
+    public double[] IntersectRaySphere(double[] origo, double[] direction, sphere sp) {
+        double[] oc = Sub(origo,sp.center);
+        double temp1 = DotProduct(direction,  direction);
+        double temp2 = 2*DotProduct(oc, direction);
+        double temp3 = DotProduct(oc, oc) - sp.radius * sp.radius;
 
-        double discriminant = k2*k2 - 4*k1*k3;
+        double discriminant = temp2*temp2 - 4*temp1*temp3;
         if (discriminant < 0) {
-            double[] b = {999999,99999};
-            return b;
+            return new double[] {999999,99999};
         }
 
-        double[] fip = new double[2];
-        fip[0] = (-k2 + Math.sqrt(discriminant)) / (2*k1);
-        fip[1] = (-k2 - Math.sqrt(discriminant)) / (2*k1);
-        return fip;
+        double[] tempArray = new double[2];
+        tempArray[0] = (-temp2 + Math.sqrt(discriminant)) / (2*temp1);
+        tempArray[1] = (-temp2 - Math.sqrt(discriminant)) / (2*temp1);
+        return tempArray;
     }
-
-
 
 
     public Color traceRay(double[] origin, double[]direction, int min_t, int max_t)  {

@@ -9,7 +9,7 @@ public class sphere {
     public int radius;
     public Color color;
 
-    public sphere(double center[], int radius, Color color) {
+    public sphere(double[] center, int radius, Color color) {
         this.center = center;
         this.radius = radius;
         this.color = color;
