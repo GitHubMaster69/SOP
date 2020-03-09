@@ -129,9 +129,11 @@ public class renderCanvas extends JPanel {
 
     public Color traceRay(double[] origin, double[]direction, int min_t, int max_t)  {
         sphere[] spheres = new sphere[3];
-        spheres[0] = new sphere(new double[]{0, -1, 3},1,Color.red);
-        spheres[1] = new sphere(new double[]{2,0,4},1,Color.green);
-        spheres[2] = new sphere(new double[]{-2,0,4},1,Color.blue);
+
+                                // Du kan ændrer koordinaterne eller farverne på kuglerne som du vil
+        spheres[0] = new sphere(new double[]{0, -1, 10},1,Color.ORANGE);
+        spheres[1] = new sphere(new double[]{2,0,5},1,Color.YELLOW);
+        spheres[2] = new sphere(new double[]{-2,0,12},1,Color.RED);
 
         double closest_t = 99999;
         sphere closest_sphere = null;
